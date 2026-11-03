@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verity Word Quest - เกมคำศัพท์ภาษาอังกฤษ ม.4</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Kanit & Nunito -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            blue: '#E0F2FE',
+                            darkBlue: '#0284C7',
+                            mint: '#E6FFFA',
+                            darkMint: '#0D9488',
+                            yellow: '#FEF08A',
+                            brightYellow: '#FACC15',
+                            bg: '#F8FAFC',
+                            card: '#FFFFFF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Kanit', 'sans-serif'],
+                        english: ['Nunito', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f0f7ff;
+            background-image: radial-gradient(#e0f2fe 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Animations for Verity */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(2deg); }
+        }
+
+        @keyframes bounce-happy {
+            0%, 100% { transform: translateY(0) scale(1); }
+            30% { transform: translateY(-25px) scale(1.1); }
+            50% { transform: translateY(0) scale(0.95); }
+            75% { transform: translateY(-10px) scale(1.05); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(250, 204, 21, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(250, 204, 21, 0.8); }
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-8deg); }
+            75% { transform: rotate(8deg); }
+        }
+
+        .verity-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .verity-happy {
+            animation: bounce-happy 0.8s ease-in-out;
+        }
+
+        .verity-shake {
+            animation: wiggle 0.4s ease-in-out 2;
+        }
+
+        .verity-body {
+            background: radial-gradient(circle at 35% 35%, #FFF066, #FACC15, #EAB308);
+            box-shadow: 0 10px 25px -5px rgba(234, 179, 8, 0.4), inset 0 -5px 10px rgba(0,0,0,0.1);
+        }
+
+        .speech-bubble {
+            position: relative;
+            background: #ffffff;
+            border-radius: 1.25rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            left: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 8px 12px 8px 0;
+            border-style: solid;
+            border-color: transparent #ffffff transparent transparent;
+        }
+
+        @media (max-width: 768px) {
+            .speech-bubble::after {
+                left: 50%;
+                top: -12px;
+                transform: translateX(-50%);
+                border-width: 0 8px 12px 8px;
+                border-color: transparent transparent #ffffff transparent;
+            }
+        }
+
+        /* Keyboard key styles */
+        .key-btn {
+            transition: all 0.15s ease;
+            box-shadow: 0 4px 0 #cbd5e1;
+        }
+        .key-btn:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #cbd5e1;
+        }
+        .key-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: translateY(4px);
+        }
+
+        /* Letter Slot Animation */
+        .letter-slot {
+            transition: all 0.2s ease;
+        }
+        .letter-slot.filled {
+            border-color: #0284C7;
+            background-color: #E0F2FE;
+            color: #0369A1;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-700 flex flex-col justify-between p-3 md:p-6">
+
+    <!-- Header Navigation -->
+    <header class="max-w-5xl mx-auto w-full flex justify-between items-center bg-white/80 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-slate-100 mb-4">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-yellow-400 flex items-center justify-center text-white text-xl font-bold shadow-md">
+                V
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-slate-800 leading-none">Verity <span class="text-sky-500 font-normal">Word Quest</span></h1>
+                <p class="text-xs text-slate-400 mt-1">คลังคำศัพท์ภาษาอังกฤษ ม.4 (Grade 10 Vocabulary)</p>
+            </div>
+        </div>
+
+        <!-- Controls & Sound Toggle -->
+        <div class="flex items-center space-x-2">
+            <button id="sound-btn" onclick="toggleSound()" class="p-2.5 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center space-x-1.5 text-sm font-medium">
+                <i id="sound-icon" class="fas fa-volume-up text-sky-600"></i>
+                <span id="sound-text" class="hidden sm:inline">เปิดเสียง</span>
+            </button>
+            <button onclick="openRulesModal()" class="p-2.5 px-3.5 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-600 transition flex items-center space-x-1.5 text-sm font-medium">
+                <i class="fas fa-question-circle"></i>
+                <span class="hidden sm:inline">กติกา</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="max-w-5xl mx-auto w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start my-auto">
+        
+        <!-- Left/Top Dashboard & Verity Assistant Panel -->
+        <section class="md:col-span-4 flex flex-col items-center bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+            
+            <!-- Dashboard Stats -->
+            <div class="grid grid-cols-2 gap-3 w-full mb-6">
+                <div class="bg-sky-50 border border-sky-100 p-3 rounded-2xl text-center">
+                    <span class="text-xs font-medium text-sky-600 block">คะแนนปัจจุบัน</span>
+                    <span id="score-text" class="text-3xl font-extrabold text-sky-700 font-english">0</span>
+                </div>
+                <div class="bg-amber-50 border border-amber-100 p-3 rounded-2xl text-center">
+                    <span class="text-xs font-medium text-amber-600 block">คะแนนสูงสุด</span>
+                    <span id="high-score-text" class="text-3xl font-extrabold text-amber-600 font-english">0</span>
+                </div>
+            </div>
+
+            <!-- Timer Bar & Text -->
+            <div class="w-full mb-6">
+                <div class="flex justify-between items-center mb-1.5 px-1">
+                    <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider"><i class="far fa-clock mr-1"></i>เวลาเหลือ</span>
+                    <span id="timer-text" class="text-lg font-bold text-rose-500 font-english">30s</span>
+                </div>
+                <div class="w-full bg-slate-100 h-3.5 rounded-full overflow-hidden p-0.5">
+                    <div id="timer-bar" class="bg-rose-500 h-full rounded-full transition-all duration-1000 ease-linear w-full"></div>
+                </div>
+            </div>
+
+            <!-- Verity Companion Character -->
+            <div class="flex flex-col md:flex-col items-center justify-center w-full my-2">
+                
+                <!-- Verity Avatar -->
+                <div id="verity-container" class="verity-float relative cursor-pointer my-2" onclick="interactVerity()">
+                    <div id="verity-body" class="w-32 h-32 md:w-36 md:h-36 rounded-full verity-body relative flex items-center justify-center transition-all duration-300">
+                        
+                        <!-- Eyes -->
+                        <div class="absolute top-10 flex space-x-6">
+                            <div id="eye-left" class="w-4 h-6 bg-slate-800 rounded-full relative overflow-hidden">
+                                <div class="w-2 h-2 bg-white rounded-full absolute top-1 left-1"></div>
+                            </div>
+                            <div id="eye-right" class="w-4 h-6 bg-slate-800 rounded-full relative overflow-hidden">
+                                <div class="w-2 h-2 bg-white rounded-full absolute top-1 left-1"></div>
+                            </div>
+                        </div>
+
+                        <!-- Cheeks -->
+                        <div class="absolute top-16 flex justify-between w-24 px-1 opacity-60">
+                            <div class="w-4 h-2.5 bg-rose-400 rounded-full blur-[1px]"></div>
+                            <div class="w-4 h-2.5 bg-rose-400 rounded-full blur-[1px]"></div>
+                        </div>
+
+                        <!-- Mouth -->
+                        <div id="verity-mouth" class="absolute top-18 w-7 h-3 border-b-4 border-slate-800 rounded-full transition-all duration-300"></div>
+                        
+                        <!-- Decorative Hand Sparkles (Idle) -->
+                        <div class="absolute -right-2 top-12 text-amber-300 text-sm animate-pulse"><i class="fas fa-sparkles"></i></div>
+                    </div>
+                </div>
+
+                <!-- Speech Bubble -->
+                <div class="speech-bubble p-4 mt-3 w-full text-center border border-slate-100">
+                    <p id="verity-speech" class="text-sm font-medium text-slate-700">
+                        "สวัสดีครับ! ผม Verity พร้อมช่วยคุณทายศัพท์ ม.4 แล้ว กดเริ่มเกมเลย!"
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Play Area -->
+        <section class="md:col-span-8 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col justify-between min-h-[460px]">
+            
+            <!-- Game Active Screen -->
+            <div id="game-screen" class="flex flex-col items-center justify-between h-full space-y-6">
+                
+                <!-- Category Tag & Hint Box -->
+                <div class="w-full text-center">
+                    <div class="inline-flex items-center space-x-2 bg-sky-50 text-sky-700 px-3 py-1 rounded-full text-xs font-semibold mb-3 border border-sky-100">
+                        <i class="fas fa-lightbulb text-amber-500"></i>
+                        <span id="word-category">คำใบ้ความหมาย (Thai Hint)</span>
+                    </div>
+                    <h2 id="word-meaning" class="text-xl md:text-2xl font-bold text-slate-800 transition-all">
+                        -- กดปุ่มเริ่มเพื่อเริ่มทายคำศัพท์ --
+                    </h2>
+                </div>
+
+                <!-- Word Display Container (Missing letters) -->
+                <div class="my-6 w-full flex justify-center items-center">
+                    <div id="word-display" class="flex flex-wrap gap-2 md:gap-3 justify-center items-center min-h-[60px]">
+                        <!-- Letters injected dynamically -->
+                        <span class="text-slate-300 text-lg">READY TO PLAY?</span>
+                    </div>
+                </div>
+
+                <!-- On-Screen Virtual Keyboard -->
+                <div class="w-full">
+                    <div id="keyboard" class="grid grid-cols-7 sm:grid-cols-9 gap-1.5 sm:gap-2 max-w-2xl mx-auto">
+                        <!-- Keyboard buttons generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Game Action Buttons -->
+                <div class="flex justify-center space-x-3 w-full pt-2">
+                    <button id="start-btn" onclick="startGame()" class="px-8 py-3.5 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-2xl shadow-lg shadow-sky-200 transition active:scale-95 text-lg flex items-center space-x-2">
+                        <i class="fas fa-play"></i>
+                        <span id="start-btn-text">เริ่มเล่นเกม (30 วิ)</span>
+                    </button>
+                    <button id="skip-btn" onclick="skipWord()" class="hidden px-5 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold rounded-2xl transition active:scale-95 text-sm flex items-center space-x-1.5">
+                        <i class="fas fa-forward"></i>
+                        <span>ข้ามคำนี้ (-1 วิ)</span>
+                    </button>
+                </div>
+
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-5xl mx-auto w-full text-center py-4 mt-4 text-xs text-slate-400">
+        Verity Word Quest &copy; 2026 - สื่อการเรียนรู้คำศัพท์ภาษาอังกฤษ ระดับชั้นมัธยมศึกษาปีที่ 4
+    </footer>
+
+    <!-- Rules Modal -->
+    <div id="rules-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-xl border border-slate-100 relative animate-fade-in">
+            <button onclick="closeRulesModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 w-8 h-8 rounded-full flex items-center justify-center bg-slate-100">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xl">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800">กติกาการเล่นเกม</h3>
+            </div>
+            <div class="space-y-3 text-sm text-slate-600 leading-relaxed">
+                <p>1. เมื่อกด <b>"เริ่มเล่นเกม"</b> เวลาจะนับถอยหลัง 30 วินาที</p>
+                <p>2. ระบบจะสุ่มคำศัพท์ภาษาอังกฤษระดับ ม.4 โดยมีช่องอักษรที่หายไป</p>
+                <p>3. คลิกเลือกตัวอักษร A-Z จากแป้นพิมพ์บนจอ หรือพิมพ์ผ่านคีย์บอร์ดจริงเพื่อเติมตัวอักษรที่ถูกต้อง</p>
+                <p>4. ตอบถูกรับทันที **+1 คะแนน** และ Verity จะสุ่มคำศัพท์ใหม่ให้อย่างรวดเร็ว</p>
+                <p>5. สามารถกดปุ่ม **"ข้าม"** ได้หากนึกคำศัพท์ไม่ออก (จะเสียเวลา 1 วินาที)</p>
+            </div>
+            <button onclick="closeRulesModal()" class="w-full mt-6 py-3 bg-sky-500 hover:bg-sky-600 text-white font-bold rounded-xl shadow-md transition">
+                เข้าใจแล้ว, ลุยเลย!
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Game Logic -->
+    <script>
+        /* -------------------------------------------------------------
+           1. Grade 10 English Vocabulary Database (ม.4 Vocabulary)
+        ------------------------------------------------------------- */
+        const vocabularyList = [
+            { word: "ENVIRONMENT", hint: "สิ่งแวดล้อม, สภาพแวดล้อม" },
+            { word: "APPRECIATE", hint: "เห็นคุณค่า, ซาบซึ้งใจ" },
+            { word: "INNOVATION", hint: "นวัตกรรม, การสร้างสิ่งใหม่" },
+            { word: "RESPONSIBLE", hint: "มีความรับผิดชอบ" },
+            { word: "CHALLENGE", hint: "ความท้าทาย, การท้าทาย" },
+            { word: "KNOWLEDGE", hint: "ความรู้, ความเข้าใจ" },
+            { word: "EXPERIENCE", hint: "ประสบการณ์" },
+            { word: "ADVANTAGE", hint: "ข้อดี, ประโยชน์, ความได้เปรียบ" },
+            { word: "SOLUTION", hint: "ทางออก, การแก้ปัญหา" },
+            { word: "GORGEOUS", hint: "งดงาม, หรูหราน่าทึ่ง" },
+            { word: "OPPORTUNITY", hint: "โอกาส" },
+            { word: "GENERATION", hint: "รุ่น, ยุคสมัย" },
+            { word: "CURIOSITY", hint: "ความอยากรู้อยากเห็น" },
+            { word: "EDUCATION", hint: "การศึกษา" },
+            { word: "TECHNOLOGY", hint: "เทคโนโลยี" },
+            { word: "CONFIDENCE", hint: "ความมั่นใจ" },
+            { word: "COMMUNITY", hint: "ชุมชน, สังคม" },
+            { word: "MOTIVATION", hint: "แรงจูงใจ" },
+            { word: "INFLUENCE", hint: "อิทธิพล, มีผลต่อ" },
+            { word: "POPULATION", hint: "ประชากร" },
+            { word: "TRADITION", hint: "ประเพณี, ธรรมเนียมปฏิบัติ" },
+            { word: "VOCABULARY", hint: "คำศัพท์" },
+            { word: "STRATEGY", hint: "กลยุทธ์, ยุทธศาสตร์" },
+            { word: "ATTITUDE", hint: "ทัศนคติ, เจตคติ" },
+            { word: "EFFICIENCY", hint: "ประสิทธิภาพ" }
+        ];
+
+        /* Verity Speech Messages */
+        const praiseMessages = [
+            "ยอดเยี่ยมมากเลยครับ! 🎉",
+            "เก่งมาก! ไปต่อเลย! ✨",
+            "สมแล้วที่เป็นนักเรียน ม.4! 🔥",
+            "ถูกต้องนะครับ! สุดยอดเลย! 👏",
+            "หัวไวมากๆ ปังไม่ไหว! 🌟",
+            "เยี่ยมครับ! เก็บอีกแต้มแล้ว! 🎯"
+        ];
+
+        const wrongMessages = [
+            "อุ๊ย ตัวนี้ยังไม่ใช่นะครับ ลองใหม่นะ! 😅",
+            "เกือบแล้วครับ! ลองสู้ดูอีกตัว! ✌️",
+            "ยังไม่ใช่ครับ แต่ Verity เชื่อว่าทำได้! 💪",
+            "ลองตัวอักษรอื่นดูครับ! 🔍"
+        ];
+
+        const gameOverMessages = [
+            "หมดเวลาแล้วครับ! คุณทำได้ดีมากๆ เลย 👏",
+            "หมดเวลาแล้ว! ฝึกฝนบ่อยๆ จะเก่งขึ้นอีกแน่นอนครับ! ✨",
+            "จบเกมแล้วครับ! มาลองท้าทายทำสถิติใหม่กัน! 🏆"
+        ];
+
+        /* -------------------------------------------------------------
+           2. Audio Synthesis (Web Audio API for zero-external file dependencies)
+        ------------------------------------------------------------- */
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.2); // A5
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now); // A3
+                osc.frequency.setValueAtTime(164.81, now + 0.1); // E3
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } else if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            } else if (type === 'gameover') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.5);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            const text = document.getElementById('sound-text');
+            if (soundEnabled) {
+                icon.className = 'fas fa-volume-up text-sky-600';
+                text.textContent = 'เปิดเสียง';
+                playSound('click');
+            } else {
+                icon.className = 'fas fa-volume-mute text-slate-400';
+                text.textContent = 'ปิดเสียง';
+            }
+        }
+
+        /* -------------------------------------------------------------
+           3. Game State Variables
+        ------------------------------------------------------------- */
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('verity_high_score')) || 0;
+        let timeLeft = 30;
+        let timerInterval = null;
+        let isPlaying = false;
+
+        let currentWordObj = null;
+        let currentWord = "";
+        let displayedLetters = []; // Array storing revealed or blank values
+        let missingIndices = [];  // Indices of blanks
+        let usedLetters = new Set();
+
+        /* -------------------------------------------------------------
+           4. DOM Elements Reference
+        ------------------------------------------------------------- */
+        const scoreText = document.getElementById('score-text');
+        const highScoreText = document.getElementById('high-score-text');
+        const timerText = document.getElementById('timer-text');
+        const timerBar = document.getElementById('timer-bar');
+        const wordMeaning = document.getElementById('word-meaning');
+        const wordDisplay = document.getElementById('word-display');
+        const keyboard = document.getElementById('keyboard');
+        const startBtn = document.getElementById('start-btn');
+        const startBtnText = document.getElementById('start-btn-text');
+        const skipBtn = document.getElementById('skip-btn');
+        const verityBody = document.getElementById('verity-body');
+        const verityMouth = document.getElementById('verity-mouth');
+        const veritySpeech = document.getElementById('verity-speech');
+        const verityContainer = document.getElementById('verity-container');
+
+        // Initialize High Score Display
+        highScoreText.textContent = highScore;
+
+        /* -------------------------------------------------------------
+           5. Keyboard Creation
+        ------------------------------------------------------------- */
+        function createKeyboard() {
+            keyboard.innerHTML = '';
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+            alphabet.forEach(letter => {
+                const btn = document.createElement('button');
+                btn.textContent = letter;
+                btn.id = `key-${letter}`;
+                btn.disabled = !isPlaying;
+                btn.className = 'key-btn bg-slate-100 hover:bg-sky-100 font-english font-bold text-slate-700 py-2.5 sm:py-3 rounded-xl border border-slate-200 text-sm sm:text-base transition';
+                btn.onclick = () => handleGuess(letter);
+                keyboard.appendChild(btn);
+            });
+        }
+
+        /* Listen for Physical Keyboard Inputs */
+        window.addEventListener('keydown', (e) => {
+            if (!isPlaying) return;
+            const letter = e.key.toUpperCase();
+            if (/^[A-Z]$/.test(letter) && !usedLetters.has(letter)) {
+                handleGuess(letter);
+            }
+        });
+
+        /* -------------------------------------------------------------
+           6. Game Logic Functions
+        ------------------------------------------------------------- */
+        function startGame() {
+            playSound('click');
+            score = 0;
+            timeLeft = 30;
+            isPlaying = true;
+
+            scoreText.textContent = score;
+            timerText.textContent = `${timeLeft}s`;
+            timerBar.style.width = '100%';
+            timerBar.className = "bg-sky-500 h-full rounded-full transition-all duration-1000 ease-linear";
+
+            startBtn.classList.add('hidden');
+            skipBtn.classList.remove('hidden');
+
+            setVerityEmotion('happy', "ลุยกันเลยครับ! ทายคำแรกเลย!");
+            
+            createKeyboard();
+            nextWord();
+
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            timerText.textContent = `${timeLeft}s`;
+            
+            const pct = (timeLeft / 30) * 100;
+            timerBar.style.width = `${pct}%`;
+
+            if (timeLeft <= 10) {
+                timerBar.className = "bg-rose-500 h-full rounded-full transition-all duration-1000 ease-linear";
+                timerText.className = "text-lg font-bold text-rose-500 font-english animate-pulse";
+            } else {
+                timerText.className = "text-lg font-bold text-sky-600 font-english";
+            }
+
+            if (timeLeft <= 0) {
+                endGame();
+            }
+        }
+
+        function nextWord() {
+            usedLetters.clear();
+            
+            // Re-enable keyboard buttons
+            const keys = keyboard.querySelectorAll('button');
+            keys.forEach(k => {
+                k.disabled = false;
+                k.className = 'key-btn bg-slate-100 hover:bg-sky-100 font-english font-bold text-slate-700 py-2.5 sm:py-3 rounded-xl border border-slate-200 text-sm sm:text-base transition';
+            });
+
+            // Pick Random Word
+            const randIndex = Math.floor(Math.random() * vocabularyList.length);
+            currentWordObj = vocabularyList[randIndex];
+            currentWord = currentWordObj.word;
+
+            wordMeaning.textContent = `"${currentWordObj.hint}"`;
+
+            // Prepare Missing Letters (Mask around 35%-50% of word length)
+            const len = currentWord.length;
+            displayedLetters = currentWord.split('');
+            missingIndices = [];
+
+            // Calculate number of missing letters based on word length
+            let numMissing = Math.max(2, Math.floor(len * 0.45));
+            
+            while (missingIndices.length < numMissing) {
+                let idx = Math.floor(Math.random() * len);
+                if (!missingIndices.includes(idx)) {
+                    missingIndices.push(idx);
+                }
+            }
+
+            missingIndices.forEach(idx => {
+                displayedLetters[idx] = '_';
+            });
+
+            renderWord();
+        }
+
+        function renderWord() {
+            wordDisplay.innerHTML = '';
+            displayedLetters.forEach((char, index) => {
+                const box = document.createElement('div');
+                if (char === '_') {
+                    box.className = 'letter-slot w-9 h-11 sm:w-11 sm:h-13 border-2 border-dashed border-sky-300 bg-sky-50/50 rounded-xl flex items-center justify-center font-english text-xl sm:text-2xl font-black text-sky-600 shadow-inner';
+                    box.textContent = '';
+                } else if (missingIndices.includes(index)) {
+                    // Correctly filled missing letter
+                    box.className = 'letter-slot w-9 h-11 sm:w-11 sm:h-13 border-2 border-sky-500 bg-sky-100 rounded-xl flex items-center justify-center font-english text-xl sm:text-2xl font-black text-sky-700 animate-bounce';
+                    box.textContent = char;
+                } else {
+                    // Pre-revealed letter
+                    box.className = 'letter-slot w-9 h-11 sm:w-11 sm:h-13 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center font-english text-xl sm:text-2xl font-bold text-slate-600';
+                    box.textContent = char;
+                }
+                wordDisplay.appendChild(box);
+            });
+        }
+
+        function handleGuess(letter) {
+            if (!isPlaying || usedLetters.has(letter)) return;
+
+            usedLetters.add(letter);
+            const keyBtn = document.getElementById(`key-${letter}`);
+            if (keyBtn) keyBtn.disabled = true;
+
+            let isCorrect = false;
+            missingIndices.forEach(idx => {
+                if (currentWord[idx] === letter) {
+                    displayedLetters[idx] = letter;
+                    isCorrect = true;
+                }
+            });
+
+            if (isCorrect) {
+                playSound('correct');
+                if (keyBtn) {
+                    keyBtn.className = 'key-btn bg-emerald-500 text-white font-english font-bold py-2.5 sm:py-3 rounded-xl text-sm sm:text-base shadow-none';
+                }
+
+                renderWord();
+
+                // Check if word completed
+                if (!displayedLetters.includes('_')) {
+                    score++;
+                    scoreText.textContent = score;
+
+                    // Update Highscore
+                    if (score > highScore) {
+                        highScore = score;
+                        highScoreText.textContent = highScore;
+                        localStorage.setItem('verity_high_score', highScore);
+                    }
+
+                    // Praise from Verity
+                    const msg = praiseMessages[Math.floor(Math.random() * praiseMessages.length)];
+                    setVerityEmotion('happy', msg);
+
+                    // Trigger Confetti effect on milestones
+                    if (score % 5 === 0) {
+                        confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
+                    }
+
+                    // Load Next Word short delay
+                    setTimeout(nextWord, 600);
+                }
+            } else {
+                playSound('wrong');
+                if (keyBtn) {
+                    keyBtn.className = 'key-btn bg-slate-300 text-slate-500 font-english font-bold py-2.5 sm:py-3 rounded-xl text-sm sm:text-base shadow-none';
+                }
+
+                const msg = wrongMessages[Math.floor(Math.random() * wrongMessages.length)];
+                setVerityEmotion('sad', msg);
+            }
+        }
+
+        function skipWord() {
+            if (!isPlaying) return;
+            playSound('click');
+            timeLeft = Math.max(0, timeLeft - 1);
+            timerText.textContent = `${timeLeft}s`;
+            setVerityEmotion('thinking', "ข้ามไปข้อถัดไปครับ! ลุยเลย!");
+            nextWord();
+        }
+
+        function endGame() {
+            isPlaying = false;
+            clearInterval(timerInterval);
+            playSound('gameover');
+
+            // Disable all keyboard keys
+            const keys = keyboard.querySelectorAll('button');
+            keys.forEach(k => k.disabled = true);
+
+            startBtn.classList.remove('hidden');
+            startBtnText.textContent = "เล่นอีกครั้ง";
+            skipBtn.classList.add('hidden');
+
+            const msg = gameOverMessages[Math.floor(Math.random() * gameOverMessages.length)];
+            setVerityEmotion('celebrate', `${msg} คุณทำได้ ${score} คะแนน!`);
+
+            if (score > 0 && score >= highScore) {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        /* -------------------------------------------------------------
+           7. Verity Visual Character Animation & Expressions
+        ------------------------------------------------------------- */
+        function setVerityEmotion(emotion, speechText) {
+            veritySpeech.textContent = speechText;
+
+            // Reset animations
+            verityContainer.classList.remove('verity-happy', 'verity-shake');
+            verityMouth.style.borderRadius = "0 0 999px 999px";
+            verityMouth.style.height = "12px";
+
+            if (emotion === 'happy') {
+                void verityContainer.offsetWidth; // Trigger reflow
+                verityContainer.classList.add('verity-happy');
+                verityMouth.style.height = "16px";
+                verityMouth.style.backgroundColor = "#1e293b";
+            } else if (emotion === 'sad') {
+                void verityContainer.offsetWidth;
+                verityContainer.classList.add('verity-shake');
+                verityMouth.style.borderRadius = "999px 999px 0 0";
+                verityMouth.style.height = "8px";
+                verityMouth.style.backgroundColor = "transparent";
+            } else if (emotion === 'celebrate') {
+                void verityContainer.offsetWidth;
+                verityContainer.classList.add('verity-happy');
+                verityMouth.style.height = "18px";
+                verityMouth.style.backgroundColor = "#1e293b";
+            }
+        }
+
+        function interactVerity() {
+            playSound('click');
+            const greetings = [
+                "จิ้มผมทำไมเหรอครับ? สู้ๆ น้า! 😁",
+                "Verity พร้อมเชียร์อยู่ตรงนี้เสมอครับ! 🌟",
+                "ทายคำศัพท์ภาษาอังกฤษง่ายนิดเดียวครับ! ✨",
+                "ม.4 แล้ว คำศัพท์เหล่านี้มีประโยชน์ต่อการสอบมากเลยนะ!"
+            ];
+            const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+            setVerityEmotion('happy', randomGreeting);
+        }
+
+        /* Modal Helpers */
+        function openRulesModal() {
+            playSound('click');
+            document.getElementById('rules-modal').classList.remove('hidden');
+        }
+
+        function closeRulesModal() {
+            playSound('click');
+            document.getElementById('rules-modal').classList.add('hidden');
+        }
+
+        // Initialize Keyboard Layout on Start
+        createKeyboard();
+    </script>
+</body>
+</html>
